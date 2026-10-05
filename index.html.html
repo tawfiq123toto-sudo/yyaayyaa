@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رحلة يارا</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    
+    <style>
+        :root {
+            --primary-bg: #fff0f5;
+            --dark-bg: #050a08;
+            --green-glow: #00ff88;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--primary-bg);
+            transition: background-color 1.5s ease, color 1.5s ease;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: white;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px #ff7eb3, 0 0 30px #ff7eb3; }
+            50% { box-shadow: 0 0 25px #ff7eb3, 0 0 50px #ff7eb3; }
+        }
+
+        @keyframes green-pulse {
+            0%, 100% { box-shadow: 0 0 20px var(--green-glow), 0 0 40px var(--green-glow); }
+            50% { box-shadow: 0 0 40px var(--green-glow), 0 0 80px var(--green-glow); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* --- Envelope Styles --- */
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            width: 280px;
+            height: 180px;
+            margin: 0 auto;
+            transition: transform 0.3s;
+        }
+        .envelope-wrapper:hover {
+            transform: scale(1.05);
+        }
+        .envelope {
+            width: 100%;
+            height: 100%;
+            background: #ffb6c1;
+            border-radius: 10px;
+            position: absolute;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .envelope::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom right, transparent 49%, #ff9eb5 50%);
+            border-radius: 10px; z-index: 2; pointer-events: none;
+        }
+        .envelope::after {
+            content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom left, transparent 49%, #ff9eb5 50%);
+            border-radius: 10px; z-index: 2; pointer-events: none;
+        }
+        .envelope-flap {
+            position: absolute; top: 0; left: 0; width: 0; height: 0;
+            border-left: 140px solid transparent; border-right: 140px solid transparent;
+            border-top: 100px solid #ff8fa3;
+            transform-origin: top; transition: transform 0.6s ease; z-index: 3;
+        }
+        .envelope-open .envelope-flap {
+            transform: rotateX(180deg); z-index: 0;
+        }
+        .envelope-letter {
+            position: absolute; bottom: 10px; left: 5%; width: 90%; min-height: 140px;
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; font-size: 0.95rem; font-weight: 700;
+            color: #333; transform: translateY(0); transition: transform 0.8s ease;
+            z-index: 1; display: flex; align-items: center; justify-content: center;
+        }
+        .envelope-open .envelope-letter {
+            transform: translateY(-130px); z-index: 4;
+        }
+
+        .dirt-patch {
+            background: #5c4033;
+            border: 4px solid #3e2723;
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            cursor: crosshair;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glowing-flower-center {
+            filter: drop-shadow(0 0 20px var(--green-glow));
+            transition: all 1s ease;
+        }
+
+        .gift-box {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .gift-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        .gift-box.open .gift-inner {
+            transform: rotateY(180deg);
+        }
+        .gift-front, .gift-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gift-front {
+            background: linear-gradient(135deg, #ff7eb3, #ff758c);
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+            font-size: 2rem;
+            border-radius: 12px;
+        }
+        .gift-back {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(10vh) scale(0.5); opacity: 0; }
+            20% { opacity: 0.3; transform: translateY(-20vh) scale(1); }
+            100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+        }
+        .floating-overlay-emoji {
+            animation: floatUp 4s linear forwards;
+        }
+
+        .merged-finale {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) scale(1.1) !important;
+            z-index: 100;
+            opacity: 0;
+            transition: all 2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .scene {
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+        .scene.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="hide-scrollbar">
+
+    <!-- Persistent Flowers Background Container -->
+    <div id="persistent-flowers-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Cat Companion -->
+    <div id="cat-companion" class="fixed bottom-4 left-4 sm:bottom-10 sm:left-10 z-50 flex flex-col items-center transform translate-y-full opacity-0 transition-all duration-700 ease-out">
+        <div id="cat-speech" class="bg-white text-gray-800 p-4 rounded-3xl rounded-bl-none shadow-xl mb-2 text-sm sm:text-base font-bold text-center max-w-[250px] border-2 border-pink-400">
+        </div>
+        <div id="cat-lottie" class="w-32 h-32">
+        </div>
+    </div>
+
+    <!-- Background Music Element -->
+    <audio id="bg-music" src="bg-music.mp3" loop></audio>
+
+    <!-- Scenes -->
+    <section id="scene-1" class="scene active z-10">
+        <button id="btn-yara" class="px-10 py-4 text-2xl font-bold text-white bg-pink-500 rounded-full hover:bg-pink-600 transition-all duration-300 transform hover:scale-110" style="animation: pulse-glow 2s infinite;">
+            أنتِ يارا؟
+        </button>
+    </section>
+
+    <section id="scene-2" class="scene z-10">
+        <div class="text-center z-20">
+            <button id="btn-flower-rain" class="text-6xl sm:text-8xl floating transition-transform hover:scale-125 focus:outline-none">
+                🌸
+            </button>
+            <p class="mt-8 text-xl sm:text-2xl font-bold text-pink-700 drop-shadow-md">اضغطي على الوردة</p>
+        </div>
+    </section>
+
+    <section id="scene-3" class="scene z-10">
+        <div id="coffee-cup" class="text-8xl sm:text-9xl cursor-pointer floating transition-transform hover:scale-110 z-20">
+            🥤
+        </div>
+    </section>
+
+    <section id="scene-4" class="scene z-10">
+        <div class="z-20 w-full flex flex-col items-center">
+            <div id="envelope-wrapper" class="envelope-wrapper">
+                <div class="envelope" id="real-envelope">
+                    <div class="envelope-flap"></div>
+                    <div class="envelope-letter">
+                        بعرف إنك زعلانة، وبعرف إن كتير الموضوع مضايقك.. بس أنتِ أغلى من إنك تبكي عشان أي حدا بالدنيا، خليكِ مبتسمة وكلشي بتمري فية حيكون خير الك وعد.
+                    </div>
+                </div>
+            </div>
+            <button id="btn-scene4-next" class="mt-20 opacity-0 px-8 py-3 bg-pink-500 text-white rounded-full font-bold shadow-lg transition-all duration-500 hidden">
+                إذا خلصتي.. يلا نكمل الطريق مع بعض!
+            </button>
+        </div>
+    </section>
+
+    <section id="scene-5" class="scene z-10">
+        <div class="z-20 flex flex-col items-center">
+            <p class="text-xl sm:text-2xl font-bold text-gray-700 mb-6 text-center drop-shadow-md">اضغطي لزراعة الزهور</p>
+            <div id="dirt-patch" class="dirt-patch w-[90vw] max-w-[500px] h-[300px] sm:h-[400px]">
+            </div>
+            <button id="btn-scene5-next" class="mt-8 opacity-0 px-8 py-3 bg-green-500 text-white rounded-full font-bold shadow-lg transition-all duration-500 hidden">
+                موافق
+            </button>
+        </div>
+    </section>
+
+    <section id="scene-6" class="scene dark-transition z-10">
+        <h1 class="text-2xl sm:text-4xl text-center text-white font-bold leading-relaxed max-w-4xl px-4 z-20" style="text-shadow: 0 0 10px var(--green-glow);">
+            طلعي كل يلي في قلبك.. ما حدا بيستاهل يصير لك شي عشان هو يكون مبسوط، أنتِ أغلى منهم كلهم.
+        </h1>
+        <div class="mt-12 text-8xl glowing-flower-center floating z-20">
+            🪷
+        </div>
+        <button id="btn-scene6-next" class="mt-16 px-8 py-3 bg-green-600 text-white rounded-full font-bold shadow-lg hover:bg-green-500 transition-colors z-20" style="animation: green-pulse 2s infinite;">
+            أكملي
+        </button>
+    </section>
+
+    <section id="scene-7" class="scene relative overflow-hidden w-full h-screen z-10">
+        <div class="flex flex-col items-center z-20">
+            <!-- Smart Loading for Doll -->
+            <img id="doll-img" src="doll-smile.png" onerror="this.onerror=function(){ this.onerror=function(){ this.onerror=null; this.src='doll-smile.PNG'; }; this.src='doll-smile.JPG'; }; this.src='doll-smile.jpg';" alt="Doll" class="w-40 h-40 object-contain mb-8 transition-transform transform hover:scale-110">
+            <div class="flex gap-4 sm:gap-10 items-center justify-center relative w-full h-[200px]">
+                <button id="btn-yes-1" class="px-8 py-4 bg-green-500 text-white rounded-full font-bold shadow-lg transition-all duration-300">
+                    بعرف
+                </button>
+                <button id="btn-no-1" class="absolute px-8 py-4 bg-red-500 text-white rounded-full font-bold shadow-lg transition-all duration-200">
+                    لا
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="scene-8" class="scene z-10">
+        <div class="z-20 text-center">
+            <h2 class="text-2xl font-bold text-white mb-8">اسمعي للنهاية:</h2>
+            <div class="grid grid-cols-2 gap-4 sm:gap-8">
+                <button class="audio-btn px-6 py-6 bg-pink-600 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center" data-src="towfiqa1.mp3">
+                    <span class="text-3xl mb-2">🎵</span> مقطع 1
+                </button>
+                <button class="audio-btn px-6 py-6 bg-pink-600 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center" data-src="towfiqa2.mp3">
+                    <span class="text-3xl mb-2">🎵</span> مقطع 2
+                </button>
+                <button class="audio-btn px-6 py-6 bg-pink-600 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center" data-src="towfiqa3.mp3">
+                    <span class="text-3xl mb-2">🎵</span> مقطع 3
+                </button>
+                <button class="audio-btn px-6 py-6 bg-pink-600 text-white rounded-2xl shadow-lg font-bold flex flex-col items-center" data-src="towfiqa4.mp3">
+                    <span class="text-3xl mb-2">🎵</span> مقطع 4
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="scene-9" class="scene relative overflow-hidden w-full h-screen z-10">
+        <div class="flex flex-col items-center z-20 w-full">
+            <h1 class="text-5xl sm:text-7xl font-bold text-white mb-10" style="text-shadow: 0 0 15px #ff7eb3;">أنتِ شطورة؟</h1>
+            <div class="flex gap-4 sm:gap-10 items-center justify-center relative w-full h-[300px]">
+                <button id="btn-yes-2" class="px-10 py-5 bg-green-500 text-white text-xl rounded-full font-bold shadow-lg transition-all duration-300 z-30">
+                    أه
+                </button>
+                <button id="btn-no-2" class="absolute px-10 py-5 bg-red-500 text-white text-xl rounded-full font-bold shadow-lg transition-all duration-200 z-30">
+                    لا
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="scene-10" class="scene text-center px-4 sm:px-10 max-w-5xl mx-auto relative overflow-hidden w-full z-10">
+        <!-- Container for background floating emojis inside scene 10 -->
+        <div id="s10-emoji-bg" class="absolute inset-0 z-0 pointer-events-none overflow-hidden"></div>
+        
+        <button id="btn-start-presentation" class="px-10 py-4 bg-gradient-to-r from-green-400 to-green-600 text-white text-2xl rounded-full font-bold shadow-[0_0_20px_#00ff88] hover:scale-105 transition-all mb-10 relative z-20">
+            ابدا العرض
+        </button>
+        
+        <div id="typewriter-container" class="hidden relative z-20">
+            <p id="typewriter-text" class="text-xl sm:text-3xl text-white font-bold leading-loose tracking-wide text-right" style="text-shadow: 0 4px 15px rgba(0,0,0,1); min-height: 300px;"></p>
+            <button id="btn-scene10-next" class="mt-10 px-8 py-3 bg-green-500 text-white rounded-full font-bold opacity-0 transition-opacity duration-1000 hidden">
+                الذهاب للمحطة الأخيرة
+            </button>
+        </div>
+    </section>
+
+    <section id="scene-11" class="scene relative z-10">
+        <div class="flex flex-col items-center z-30">
+            <!-- Smart Loading for Young Yara بدون أي خلفيات أو إطارات -->
+            <div class="w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center mb-8">
+                <img src="young-yara.png" onerror="this.onerror=function(){ this.onerror=function(){ this.onerror=function(){ this.onerror=null; this.src='young-yara.PNG'; }; this.src='young-yara.JPG'; }; this.src='young-yara.jpeg'; }; this.src='young-yara.jpg';" alt="Young Yara" class="max-w-full max-h-full object-contain">
+            </div>
+            <button id="btn-take-flowers" class="px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-full font-bold shadow-lg transition-transform hover:scale-110">
+                خذيهم
+            </button>
+        </div>
+        <div id="giant-flower" class="absolute bottom-[-100%] left-1/2 transform -translate-x-1/2 text-[15rem] sm:text-[25rem] transition-all duration-1000 ease-out z-10 opacity-0 pointer-events-none">
+            💐
+        </div>
+    </section>
+
+    <section id="scene-12" class="scene w-full z-10">
+        <div id="gifts-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl z-20">
+            <!-- JavaScript will populate 12 boxes here -->
+        </div>
+        
+        <!-- Finale Overlay Components -->
+        <div id="finale-green-bouquet" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[10rem] opacity-0 transition-opacity duration-2000 pointer-events-none z-40" style="filter: drop-shadow(0 0 50px var(--green-glow));">
+            💐
+        </div>
+        
+        <h2 id="finale-text" class="fixed top-[20%] left-1/2 transform -translate-x-1/2 text-3xl sm:text-5xl font-bold text-white text-center opacity-0 transition-opacity duration-2000 z-50 w-full px-4" style="text-shadow: 0 0 20px var(--green-glow);">
+            ابتسمي، وما تسمحي لشيء يزعلك يا مهندسة!
+        </h2>
+        
+        <button id="btn-final-accept" class="fixed bottom-[15%] left-1/2 transform -translate-x-1/2 px-12 py-4 bg-green-500 hover:bg-green-400 text-white text-2xl rounded-full font-bold shadow-[0_0_30px_#00ff88] opacity-0 transition-opacity duration-2000 hidden z-50">
+            حاضر
+        </button>
+    </section>
+
+    <!-- Fade Out Overlay -->
+    <div id="fade-overlay" class="fixed inset-0 bg-black z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-[3000ms]">
+        <h1 class="text-white text-4xl sm:text-6xl font-bold opacity-0 transition-opacity duration-1000" id="final-calm-text">
+            انتهينا وخلص
+        </h1>
+    </div>
+
+    <script>
+        // Data Configuration
+        const LOTTIE_URLS = {
+            thinking: 'https://lottie.host/97ffd993-9f24-4c8d-bae7-1969baaf9d4c/1iDEAbL2LA.json',
+            speaking: 'https://lottie.host/a9307930-e311-4ca7-bc45-38881304b27a/7Y9srXpJqq.json',
+            happy: 'https://lottie.host/54488910-d0c3-4ab2-aebd-82adb51b9c78/7SMVSlvdne.json',
+            planted: 'https://lottie.host/26e10241-7b7d-4ff5-8888-a87bd88fd7fe/I11hCenMPK.json'
+        };
+
+        const CAT_UI = {
+            container: document.getElementById('cat-companion'),
+            speech: document.getElementById('cat-speech'),
+            lottieWrap: document.getElementById('cat-lottie')
+        };
+
+        // Helper: Update Cat Companion State
+        function updateCat(emotion, message) {
+            CAT_UI.speech.innerHTML = message;
+            CAT_UI.lottieWrap.innerHTML = `<lottie-player src="${LOTTIE_URLS[emotion]}" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>`;
+            CAT_UI.container.classList.remove('translate-y-full', 'opacity-0');
+        }
+
+        function hideCat() {
+            CAT_UI.container.classList.add('translate-y-full', 'opacity-0');
+        }
+
+        // Helper: Scene Navigation and Background Colors
+        function showScene(sceneNumber) {
+            document.querySelectorAll('.scene').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(`scene-${sceneNumber}`);
+            target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'instant' }); 
+
+            const bgColors = {
+                1: '#fff0f5', // pink-50
+                2: '#fce7f3', // pink-100
+                3: '#fff7ed', // orange-50
+                4: '#fef2f2', // red-50
+                5: '#fefce8', // yellow-50
+            };
+            if(bgColors[sceneNumber] && !document.body.classList.contains('dark-mode')) {
+                document.body.style.backgroundColor = bgColors[sceneNumber];
+            }
+        }
+
+        document.getElementById('btn-yara').addEventListener('click', function() {
+            this.style.opacity = '0';
+            this.style.pointerEvents = 'none';
+            setTimeout(() => {
+                updateCat('speaking', 'أهلاً فيكِ.. شو رايك تيجي معي في رحلة صغيرة؟');
+                setTimeout(() => showScene(2), 3500);
+            }, 500);
+        });
+
+        document.getElementById('btn-flower-rain').addEventListener('click', function() {
+            if (this.dataset.clicked) return;
+            this.dataset.clicked = "true";
+            
+            const bgContainer = document.getElementById('persistent-flowers-bg');
+            
+            for(let i=0; i<45; i++) {
+                let flower = document.createElement('div');
+                flower.className = 'absolute text-3xl sm:text-5xl floating pointer-events-none transition-all duration-1000 transform scale-0 z-0';
+                flower.innerText = ['🌸','🌺','🌷','🌹'][Math.floor(Math.random()*4)];
+                flower.style.left = Math.random() * 100 + '%';
+                flower.style.top = Math.random() * 100 + '%';
+                bgContainer.appendChild(flower);
+                
+                setTimeout(() => flower.classList.remove('scale-0'), Math.random() * 1500);
+            }
+
+            updateCat('happy', 'أه.. المكان صار زحمة كتير! انزلي لتحت معنا شوي');
+            setTimeout(() => showScene(3), 4000);
+        });
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.id === 'scene-3' && mutation.target.classList.contains('active')) {
+                    updateCat('thinking', 'شو رأيك ناخذ قهوة معنا في الطريق؟');
+                }
+            });
+        });
+        observer.observe(document.getElementById('scene-3'), { attributes: true, attributeFilter: ['class'] });
+
+        document.getElementById('coffee-cup').addEventListener('click', function() {
+            showScene(4);
+        });
+
+        document.getElementById('envelope-wrapper').addEventListener('click', function() {
+            const env = document.getElementById('real-envelope');
+            
+            if(!env.classList.contains('envelope-open')) {
+                env.classList.add('envelope-open');
+                
+                setTimeout(() => {
+                    const btn = document.getElementById('btn-scene4-next');
+                    btn.classList.remove('hidden');
+                    setTimeout(() => {
+                        btn.classList.remove('opacity-0');
+                    }, 50);
+                    updateCat('speaking', 'إذا خلصتي.. يلا نكمل الطريق مع بعض!');
+                }, 1500);
+            }
+        });
+
+        document.getElementById('btn-scene4-next').addEventListener('click', function() {
+            showScene(5);
+            updateCat('speaking', 'هاي الأرض محتاجة لمستك.. ازرعي ورد بحجم الزعل اللي في قلبك!');
+        });
+
+        let scene5TimerStarted = false;
+        document.getElementById('dirt-patch').addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const plant = document.createElement('div');
+            plant.style.position = 'absolute';
+            plant.style.left = (x - 25) + 'px'; 
+            plant.style.top = (y - 25) + 'px';
+            plant.style.width = '60px';
+            plant.style.height = '60px';
+            plant.innerHTML = `<lottie-player src="${LOTTIE_URLS.planted}" background="transparent" speed="1" style="width: 100%; height: 100%;" autoplay></lottie-player>`;
+            
+            this.appendChild(plant);
+
+            if(!scene5TimerStarted) {
+                scene5TimerStarted = true;
+                setTimeout(() => {
+                    const btn = document.getElementById('btn-scene5-next');
+                    btn.classList.remove('hidden');
+                    setTimeout(() => btn.classList.remove('opacity-0'), 50);
+                    updateCat('happy', 'إذا خلصتي.. خلينا ننزل كمان شوي!');
+                }, 10000);
+            }
+        });
+
+        document.getElementById('btn-scene5-next').addEventListener('click', function() {
+            showScene(6);
+            updateCat('happy', 'شكراً على الزهور يلي زرعتيها، كتير حلوة.. بس هسا أجا دوري أنا!');
+        });
+
+        document.getElementById('btn-scene6-next').addEventListener('click', function() {
+            document.body.classList.add('dark-mode');
+            document.body.style.backgroundColor = 'var(--dark-bg)';
+            showScene(7);
+            updateCat('thinking', 'في لعبة صغيرة هون..');
+        });
+
+        function setupTrollGame(btnNoId, btnYesId, sceneNum, dollImgId, isScene9 = false) {
+            const btnNo = document.getElementById(btnNoId);
+            const btnYes = document.getElementById(btnYesId);
+            const dollImg = document.getElementById(dollImgId);
+            let attempts = 0;
+            let currentScale = 1;
+            const catMessages = isScene9 ? 
+                ["ليه لأ؟", "عنجد لأ؟", "فكري فيها!", "أكيد أه!"] : 
+                ["ليه لأ؟", "كيف لأ؟", "أميلا بتعرفي!", "اضغطي بعرف!"];
+
+            const moveBtn = () => {
+                attempts++;
+                
+                const parentW = btnNo.parentElement.clientWidth;
+                const parentH = btnNo.parentElement.clientHeight;
+                const newX = (Math.random() - 0.5) * (parentW * 0.8);
+                const newY = (Math.random() - 0.5) * (parentH * 0.8);
+                btnNo.style.transform = `translate(${newX}px, ${newY}px)`;
+
+                if(dollImg) {
+                    dollImg.src = 'doll-gun.png';
+                    dollImg.onerror = function() { this.onerror=function(){ this.onerror=function(){ this.onerror=null; this.src='doll-gun.PNG'; }; this.src='doll-gun.JPG'; }; this.src='doll-gun.jpg'; };
+                    
+                    setTimeout(() => { 
+                        dollImg.src = 'doll-smile.png'; 
+                        dollImg.onerror = function() { this.onerror=function(){ this.onerror=function(){ this.onerror=null; this.src='doll-smile.PNG'; }; this.src='doll-smile.JPG'; }; this.src='doll-smile.jpg'; };
+                    }, 500);
+                }
+
+                currentScale += 0.2;
+                btnYes.style.transform = `scale(${currentScale})`;
+
+                updateCat('speaking', catMessages[Math.min(attempts - 1, catMessages.length - 1)]);
+            };
+
+            btnNo.addEventListener('mouseover', moveBtn);
+            btnNo.addEventListener('touchstart', (e) => { e.preventDefault(); moveBtn(); });
+
+            btnYes.addEventListener('click', () => {
+                if (isScene9) {
+                    showScene(10);
+                    updateCat('happy', 'كنت بعرف إنك شطورة!');
+                } else {
+                    showScene(8);
+                    updateCat('speaking', 'اسمعي هدول كويس وما تطلعي الا ليخلصوا!');
+                }
+            });
+        }
+
+        setupTrollGame('btn-no-1', 'btn-yes-1', 7, 'doll-img', false);
+        setupTrollGame('btn-no-2', 'btn-yes-2', 9, null, true);
+
+        let audioCompletedCount = 0;
+        const totalAudios = 4;
+        const audioBtns = document.querySelectorAll('.audio-btn');
+
+        audioBtns.forEach(btn => {
+            let isCompleted = false;
+            btn.addEventListener('click', function() {
+                if(isCompleted || this.disabled) return;
+                
+                const src = this.getAttribute('data-src');
+                const audio = new Audio(src);
+                
+                audioBtns.forEach(b => b.disabled = true);
+                this.classList.replace('bg-pink-600', 'bg-yellow-500');
+                
+                audio.play().catch(e => {
+                    console.error("Audio error:", e);
+                    setTimeout(() => audio.dispatchEvent(new Event('ended')), 1000);
+                });
+
+                audio.onended = () => {
+                    isCompleted = true;
+                    this.classList.replace('bg-yellow-500', 'bg-green-500');
+                    audioBtns.forEach(b => b.disabled = false);
+                    audioCompletedCount++;
+
+                    if(audioCompletedCount === totalAudios) {
+                        updateCat('happy', 'أنتِ شطورة.. أكيد عرفتيهم!');
+                        setTimeout(() => showScene(9), 2000);
+                    }
+                };
+            });
+        });
+
+        const deepMessage = "مو عيب انك تزعلي، ومو عيب انك تبكي.. وقد ما بدك تحكي احكي، ما حدا له عندك. بس لا تسمحي لحدا بالدنيا كلها يتعب نفسيتك أو يتعب عقلك، أو يخليك تتعبي أو تضري حالك دراسياً أو بالدوام، أو يوهمك أنه وجوده بيعمل لك توتر أو أنه حيخرب عليك حياتك الجامعية. يخسي أي حدا بالدنيا يضرك أو يتدخل فيكِ! أنتِ حدا منيح وما بتعملي إشي غلط، وما بتستاهلي تنضري عشان أي حدا بالدنيا مهما كان مفكر حاله منيح. ابتسمي، وباقي الأمور كلها أنتِ رح تكوني قدها، أنا واثق فيكِ. أنتِ حدا شاطر، وحدا قوي، وحدا كثير منيح،واحسن مهندسة بكل الدنيا، وبتستاهل كل إشي منيح.. ف حرام يارا تنضر وتزعل عشان كلب مثل هذا!";
+        
+        document.getElementById('btn-start-presentation').addEventListener('click', function() {
+            this.style.display = 'none';
+            hideCat();
+            
+            document.getElementById('typewriter-container').classList.remove('hidden');
+            
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.play().catch(e => console.log("Music play prevented", e));
+
+            const emojis = ['✨', '💖', '🌸', '🌟', '🦋', '🤍'];
+            const bgContainer = document.getElementById('s10-emoji-bg');
+            setInterval(() => {
+                const el = document.createElement('div');
+                el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                el.className = 'absolute text-4xl sm:text-6xl floating-overlay-emoji opacity-20';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.bottom = '-10vh';
+                bgContainer.appendChild(el);
+                setTimeout(() => el.remove(), 4000); 
+            }, 300);
+
+            const textContainer = document.getElementById('typewriter-text');
+            let index = 0;
+
+            function typeWriter() {
+                if (index < deepMessage.length) {
+                    textContainer.innerHTML += deepMessage.charAt(index);
+                    index++;
+                    setTimeout(typeWriter, 50); 
+                } else {
+                    updateCat('happy', 'شكرًا أنك وصلتيني لهون.. أنا كنت حاب أمشي معك في الآخر. انتقلي لمحطتنا الأخيرة...');
+                    const nextBtn = document.getElementById('btn-scene10-next');
+                    nextBtn.classList.remove('hidden');
+                    setTimeout(() => nextBtn.classList.remove('opacity-0'), 50);
+                }
+            }
+            typeWriter();
+        });
+
+        document.getElementById('btn-scene10-next').addEventListener('click', function() {
+            showScene(11);
+            updateCat('speaking', 'يارا الصغيرة بتعطيكي وردات بتحبيهم.. معقول ما تاخذيهم؟');
+        });
+
+        document.getElementById('btn-take-flowers').addEventListener('click', function() {
+            this.style.opacity = '0';
+            this.style.pointerEvents = 'none';
+
+            const flower = document.getElementById('giant-flower');
+            flower.classList.remove('opacity-0');
+            flower.style.bottom = '15%'; 
+            flower.style.transform = 'translate(-50%, 0) scale(1.2)';
+            
+            updateCat('happy', 'شكرًا أنك أخذتيهم!');
+            
+            setTimeout(() => {
+                flower.classList.add('opacity-0');
+                flower.style.bottom = '-100%'; 
+                
+                setTimeout(() => {
+                    showScene(12);
+                    initFinale();
+                }, 1000); 
+            }, 3500);
+        });
+
+        let openedBoxes = 0;
+        
+        function initFinale() {
+            updateCat('thinking', 'أنا بدي أروح، وأترك لك هدية بسيطة...');
+            const grid = document.getElementById('gifts-grid');
+            grid.innerHTML = ''; 
+            
+            for(let i=1; i<=12; i++) {
+                // الكود بيسحب الأسماء الأساسية gift1 لـ gift12
+                const baseName = 'gift' + i;
+                const boxWrapper = document.createElement('div');
+                boxWrapper.className = 'gift-box w-20 h-20 sm:w-28 sm:h-28 mx-auto';
+                
+                // البحث الذكي عن الصيغ
+                boxWrapper.innerHTML = `
+                    <div class="gift-inner">
+                        <div class="gift-front text-white font-bold">🎁</div>
+                        <div class="gift-back">
+                            <img src="${baseName}.jpg" onerror="this.onerror=function(){ this.onerror=function(){ this.onerror=function(){ this.onerror=null; this.src='${baseName}.PNG'; }; this.src='${baseName}.JPG'; }; this.src='${baseName}.jpeg'; }; this.src='${baseName}.png';" class="max-w-full max-h-full object-contain" />
+                        </div>
+                    </div>
+                `;
+                
+                boxWrapper.addEventListener('click', function() {
+                    if(!this.classList.contains('open')) {
+                        this.classList.add('open');
+                        openedBoxes++;
+                        if(openedBoxes === 12) {
+                            triggerGrandFinale();
+                        }
+                    }
+                });
+                grid.appendChild(boxWrapper);
+            }
+        }
+
+        function triggerGrandFinale() {
+            hideCat();
+            setTimeout(() => {
+                const boxes = document.querySelectorAll('.gift-box');
+                boxes.forEach((box, index) => {
+                    const inner = box.querySelector('.gift-inner');
+                    inner.style.position = 'fixed';
+                    
+                    setTimeout(() => {
+                        inner.classList.add('merged-finale');
+                    }, index * 100);
+                });
+
+                setTimeout(() => {
+                    document.getElementById('finale-green-bouquet').style.opacity = '0.8';
+                    document.getElementById('finale-text').style.opacity = '1';
+                    
+                    const acceptBtn = document.getElementById('btn-final-accept');
+                    acceptBtn.classList.remove('hidden');
+                    setTimeout(() => acceptBtn.style.opacity = '1', 100);
+                }, 1500);
+
+            }, 1000);
+        }
+
+        document.getElementById('btn-final-accept').addEventListener('click', function() {
+            const overlay = document.getElementById('fade-overlay');
+            const finalTxt = document.getElementById('final-calm-text');
+            
+            overlay.classList.remove('pointer-events-none');
+            overlay.style.opacity = '1';
+            
+            const bgMusic = document.getElementById('bg-music');
+            let vol = 1;
+            const fadeOutInt = setInterval(() => {
+                if (vol > 0.1) {
+                    vol -= 0.1;
+                    bgMusic.volume = vol;
+                } else {
+                    bgMusic.pause();
+                    clearInterval(fadeOutInt);
+                }
+            }, 300);
+
+            setTimeout(() => {
+                finalTxt.style.opacity = '1';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
